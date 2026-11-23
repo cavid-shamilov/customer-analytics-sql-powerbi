@@ -61,6 +61,23 @@ Each record contains information about a product sold as part of a customer orde
 - Microsoft Power BI
 - GitHub
 
-## Project Status
+### Initial Dataset Inspection
 
-In Progress — Dataset inspection and data quality assessment.
+- Total Rows: 9,995 (including the header row)
+- Total Data Records: 9,994
+- Total Columns: 21
+- Date Columns: `Order Date`, `Ship Date`
+- Discount: Percentage-based decimal value
+- Original Format: CSV
+
+### Data Type Preparation
+
+The columns will be assigned appropriate SQL Server data types before analysis.
+
+- Identifiers will be stored as `VARCHAR` or `INT`, depending on their structure.
+- Date columns will use the `DATE` data type.
+- Sales and Profit will use `DECIMAL(18,4)`.
+- Discount will use `DECIMAL(5,2)`.
+- Quantity will use `INT`.
+- Postal Code will use `VARCHAR` to preserve its original representation.
+
