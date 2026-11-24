@@ -1,10 +1,10 @@
 # Customer Analytics — SQL Server & Power BI
 
-## Project Overview
+## 1. Project Overview
 
-This project focuses on customer analytics using the Sample Superstore dataset. The goal is to understand customer behavior, identify valuable customer groups, evaluate customer profitability, and explore opportunities to improve customer retention.
+This project focuses on customer analytics using the Sample Superstore dataset. The objective is to understand customer value, purchasing behavior, profitability, and retention-related patterns through SQL Server and Power BI.
 
-The main business question is:
+The project aims to answer the following business question:
 
 **Which customers are most valuable, what drives their value, and how can the business improve customer retention and profitability?**
 
@@ -12,134 +12,139 @@ The analysis will cover:
 
 - Customer Segmentation
 - New vs. Returning Customers
-- Customer Value and Purchase Frequency
+- Customer Value Analysis
 - Customer Profitability
-- Retention and Inactivity-Based Churn Risk
-- RFM Analysis (Recency, Frequency, Monetary)
-- Interactive Power BI Dashboard
+- Retention and Churn Risk
+- RFM Analysis
 - Business Insights and Recommendations
 
-## Dataset Source
+**Important:** The dataset does not contain an explicit churn status. Churn-related analysis will therefore use inactivity-based churn risk indicators rather than claiming to identify confirmed churned customers.
+
+## 2. Dataset Source
 
 Dataset: [Sample Superstore Dataset — Kaggle](https://www.kaggle.com/datasets/vivek468/superstore-dataset-final)
 
-- Total records: **9,994**
-- Total columns: **21**
-- Country coverage: **United States**
-- Order date range: **January 3, 2014 – December 30, 2017**
+- Total records: 9,994
+- Total columns: 21
+- Country: United States
+- Time period: January 2014 – December 2017
+- Unique customers: 793
+- Unique orders: 5,009
 
-## Data Grain
+## 3. Data Structure and Grain
 
-Each row represents an individual product line within an order.
+The dataset contains order, customer, product, shipping, geographic, sales, and profit information.
 
-An order can contain multiple product lines. Therefore, `Order_ID` alone does not uniquely identify a row. The dataset includes `Row_ID` as a row-level identifier.
+**Data Grain:** One row represents an individual product line within an order.
 
-The combination of `Order_ID` and `Product_ID` is not guaranteed to be unique, because some orders contain multiple lines with the same product ID.
+An order may contain multiple product lines. Therefore, `Order_ID` alone does not uniquely identify a row.
 
-## Dataset Columns
+`Row_ID` is unique across all 9,994 records and serves as the row-level identifier in the source dataset.
+
+The combination `Order_ID + Product_ID` is not a reliable unique key because the same product can appear in multiple lines of the same order.
+
+## 4. Column Descriptions
 
 | Column | Description |
 |---|---|
-| Row ID | Unique identifier assigned to each row in the dataset. |
-| Order ID | Identifier of the customer order. |
-| Order Date | Date when the order was placed. |
-| Ship Date | Date when the order was shipped. |
-| Ship Mode | Shipping method selected for the order. |
-| Customer ID | Unique customer identifier in the source dataset. |
-| Customer Name | Customer's name. |
-| Segment | Customer segment: Consumer, Corporate, or Home Office. |
-| Country | Country where the order was placed. |
-| City | City associated with the order. |
-| State | State associated with the order. |
-| Postal Code | Postal code associated with the order's location. |
-| Region | Geographic sales region. |
-| Product ID | Product identifier provided by the source dataset. |
-| Category | Main product category. |
-| Sub-Category | More specific product classification. |
-| Product Name | Product name provided by the source dataset. |
-| Sales | Sales amount for the individual order line, after the applied discount. |
-| Quantity | Number of units sold in the order line. |
-| Discount | Discount rate applied to the order line. |
-| Profit | Profit or loss recorded for the individual order line. Negative values represent losses. |
+| Row ID | Unique identifier for each dataset row |
+| Order ID | Unique identifier for an order |
+| Order Date | Date when the order was placed |
+| Ship Date | Date when the order was shipped |
+| Ship Mode | Shipping method selected for the order |
+| Customer ID | Unique customer identifier |
+| Customer Name | Customer's name |
+| Segment | Customer segment: Consumer, Corporate, or Home Office |
+| Country | Country where the order was placed |
+| City | Customer's city |
+| State | Customer's state |
+| Postal Code | Geographic postal code |
+| Region | Geographic sales region |
+| Product ID | Product identifier |
+| Category | Main product category |
+| Sub-Category | Product subcategory |
+| Product Name | Product name |
+| Sales | Sales amount for the individual product line |
+| Quantity | Number of units sold in the product line |
+| Discount | Discount rate applied to the product line |
+| Profit | Profit or loss associated with the product line |
 
-## Tools & Technologies
+**Metric notes:**
+- Sales values represent individual product-line sales amounts after the applied discount.
+- Discount values are stored as decimal rates. For example, `0.20` represents a 20% discount.
+- Profit can be negative, indicating a loss on a product line.
+- Negative Profit values are retained because they represent relevant business outcomes.
+
+## 5. Tools & Technologies
 
 - Microsoft SQL Server
 - SQL Server Management Studio (SSMS)
 - Power BI
 - GitHub
 
-## Data Audit & Quality Assessment
+## 6. Data Audit & Quality Assessment
 
-The initial data audit was performed on the raw staging table:
-
-`dbo.superstore2`
-
-All source columns were imported as text (`NVARCHAR`) to preserve the original values and avoid incorrect numeric or date conversions during import.
-
-The raw staging table has been kept unchanged.
+A comprehensive data audit was performed before data cleaning and analysis.
 
 ### A. Dataset Structure
+
+| Check | Result | Status |
+|---|---:|---|
+| Total rows | 9,994 | Passed |
+| Total columns | 21 | Passed |
+| Row identifier | Row_ID | Passed |
+| Raw column types | NVARCHAR staging structure | Expected |
+
+The dataset was successfully imported into SQL Server as a raw staging table.
+
+### B. Missing Values
+
+All 21 columns were checked for NULL and blank values.
 
 | Check | Result |
 |---|---:|
 | Total rows | 9,994 |
-| Total columns | 21 |
-| Raw table | `dbo.superstore2` |
-| Initial column storage | NVARCHAR |
+| NULL values | 0 |
+| Blank values | 0 |
 
-**Status:** Completed.
-
-### B. Missing Values
-
-All 21 columns were checked for SQL `NULL` values and empty strings.
-
-| Check | Result |
-|---|---:|
-| Columns checked | 21 |
-| Columns with NULL values | 0 |
-| Columns with blank values | 0 |
-
-No missing or blank values were detected in the raw dataset.
-
-**Status:** Completed.
+**Conclusion:** No missing or blank values were detected in the dataset.
 
 ### C. Duplicates & Identifiers
 
-- `Row_ID` was checked for duplicate values. No duplicates were found.
-- A duplicate check using `Order_ID` and `Product_ID` identified 8 repeated combinations.
-- Seven combinations represented separate order lines with different quantities and corresponding business values.
-- One combination contained two identical business records, differing only by `Row_ID`.
+- `Row_ID` is unique across all 9,994 records.
+- Eight `Order_ID + Product_ID` combinations appeared more than once.
+- Seven combinations represented different order lines, with differences in quantity and other sales values.
+- One combination contained two identical business records, differing only in `Row_ID`.
 
-The potential exact duplicate:
+The two matching records were:
 
-- Order ID: `US-2014-150119`
-- Product ID: `FUR-CH-10002965`
-- Row IDs: `3406` and `3407`
-- Sales: `281.372`
-- Quantity: `2`
-- Discount: `0.30`
-- Profit: `-12.0588`
+- Row IDs: 3406 and 3407
+- Order ID: US-2014-150119
+- Product ID: FUR-CH-10002965
+- Sales: 281.372
+- Quantity: 2
+- Discount: 0.30
+- Profit: -12.0588
 
-This record will be investigated during the cleaning stage. It has not been deleted from the raw data.
-
-**Status:** Completed.
+**Conclusion:** One potential exact duplicate business record was identified. It will be investigated before deciding whether to exclude one copy from the cleaned dataset. The raw table will remain unchanged.
 
 ### D. Data Types & Conversion
 
-The following fields were tested for conversion into their expected data types:
+All relevant fields were tested using SQL Server `TRY_CONVERT()`.
 
-- `Row_ID` → INT
-- `Order_Date` → DATE
-- `Ship_Date` → DATE
-- `Sales` → DECIMAL
-- `Quantity` → INT
-- `Discount` → DECIMAL
-- `Profit` → DECIMAL
+| Field | Invalid Conversions |
+|---|---:|
+| Row_ID | 0 |
+| Order_Date | 0 |
+| Ship_Date | 0 |
+| Sales | 0 |
+| Quantity | 0 |
+| Discount | 0 |
+| Profit | 0 |
 
-All 9,994 records passed the conversion checks. No invalid values were detected in these fields.
+**Conclusion:** All tested values can be converted to their intended data types.
 
-**Status:** Completed.
+The raw table uses NVARCHAR columns intentionally as a staging structure. Appropriate data types will be applied in a separate cleaned table.
 
 ### E. Date Validation
 
@@ -153,7 +158,7 @@ All 9,994 records passed the conversion checks. No invalid values were detected 
 | Future order dates | 0 |
 | Future ship dates | 0 |
 
-Yearly order activity:
+**Yearly Order Distribution**
 
 | Year | Order Lines | Unique Orders |
 |---|---:|---:|
@@ -163,13 +168,13 @@ Yearly order activity:
 | 2017 | 3,312 | 1,687 |
 | **Total** | **9,994** | **5,009** |
 
-The number of unique orders increased from 969 in 2014 to 1,687 in 2017. This is a preliminary volume observation and does not, by itself, establish an improvement in revenue or profitability.
+Unique order volume increased from 969 in 2014 to 1,687 in 2017, approximately 74.1%.
 
-**Status:** Completed.
+This is a preliminary volume observation and does not by itself establish improved business performance or profitability.
 
 ### F. Numeric Validation
 
-Summary of numeric fields:
+**Numeric Summary**
 
 | Metric | Minimum | Maximum | Average |
 |---|---:|---:|---:|
@@ -178,32 +183,43 @@ Summary of numeric fields:
 | Discount | 0.00 | 0.80 | 0.1562 |
 | Profit | -6,599.9780 | 8,399.9760 | 28.6569 |
 
-Business rule checks:
+**Profit Distribution**
 
-| Check | Result |
+| Profit Type | Rows |
 |---|---:|
-| Non-positive Sales | 0 |
-| Non-positive Quantity | 0 |
-| Discounts outside 0–1 | 0 |
-| Negative Profit rows | 1,871 |
-| Zero Profit rows | 65 |
-| Positive Profit rows | 8,058 |
+| Negative Profit | 1,871 |
+| Zero Profit | 65 |
+| Positive Profit | 8,058 |
+| **Total** | **9,994** |
 
-Approximately **18.73%** of order lines have negative profit.
+Approximately 18.73% of product-line records have negative Profit.
 
-Negative profit values are valid business outcomes and should not be treated as data errors.
+Negative Profit values are valid business outcomes and will not be removed.
 
-Discount values are already stored as decimal rates. For example, `0.20` represents a 20% discount. No additional division or multiplication is required to interpret the source values.
+**Discount Distribution**
 
-Negative profit should not automatically be attributed to discounts alone because the dataset does not provide a complete breakdown of all cost components.
+| Discount | Rows |
+|---:|---:|
+| 0.00 | 4,798 |
+| 0.10 | 94 |
+| 0.15 | 52 |
+| 0.20 | 3,657 |
+| 0.30 | 227 |
+| 0.32 | 27 |
+| 0.40 | 206 |
+| 0.45 | 11 |
+| 0.50 | 66 |
+| 0.60 | 138 |
+| 0.70 | 418 |
+| 0.80 | 300 |
 
-**Status:** Completed.
+All discount values are within the valid range of 0 to 0.80.
 
 ### G. Categorical Consistency
 
-The following distinct values were identified:
+The following distinct category values were identified:
 
-| Column | Distinct Values |
+| Column | Unique Values |
 |---|---:|
 | Ship Mode | 4 |
 | Segment | 3 |
@@ -212,77 +228,54 @@ The following distinct values were identified:
 | Sub-Category | 17 |
 | Country | 1 |
 
-Observed categories include:
+No leading or trailing whitespace was detected in the six tested categorical columns.
 
-- Ship Mode: First Class, Same Day, Second Class, Standard Class
-- Segment: Consumer, Corporate, Home Office
-- Region: Central, East, South, West
-- Category: Furniture, Office Supplies, Technology
-
-Whitespace checks were performed on the six categorical columns. No leading or trailing spaces were detected.
-
-**Status:** Completed.
+**Conclusion:** No categorical whitespace inconsistencies were identified in the tested fields.
 
 ### H. Customer Validation
 
-Customer ID and Customer Name consistency was checked in both directions.
+- Unique Customer IDs: 793
+- Unique Customer Names: 793
+- No Customer ID was associated with multiple customer names.
+- No Customer Name was associated with multiple Customer IDs.
 
-| Metric | Result |
-|---|---:|
-| Unique Customer IDs | 793 |
-| Unique Customer Names | 793 |
-| Customer IDs associated with multiple names | 0 |
-| Customer names associated with multiple IDs | 0 |
-
-Each customer ID maps to one customer name, and each customer name maps to one customer ID in the source dataset.
-
-**Status:** Completed.
+**Conclusion:** Customer IDs and customer names have a consistent one-to-one mapping in this dataset.
 
 ### I. Order Validation
 
-Each `Order_ID` was checked for consistency across:
+Each Order ID was checked for consistency across:
 
 - Customer ID
 - Order Date
 - Ship Date
 - Ship Mode
 
-No order was found with multiple distinct values for these attributes.
+No orders were found with conflicting values across these attributes.
 
-| Metric | Result |
-|---|---:|
-| Unique Orders | 5,009 |
-| Orders with inconsistent customer IDs | 0 |
-| Orders with inconsistent order dates | 0 |
-| Orders with inconsistent ship dates | 0 |
-| Orders with inconsistent ship modes | 0 |
+Total unique orders: 5,009.
 
-**Status:** Completed.
+**Conclusion:** Order-level attributes are consistent across the records.
 
 ### J. Product Validation
 
-Product identifiers and names were investigated in both directions.
+Product validation revealed an important data-quality issue.
 
-Initial results:
-
-| Metric | Result |
-|---|---:|
-| Unique Product IDs | 1,862 |
-| Unique Product Names | 1,850 |
-| Unique Categories | 3 |
-| Unique Sub-Categories | 17 |
+- Unique Product IDs: 1,862
+- Unique Product Names: 1,850
+- Unique Categories: 3
+- Unique Sub-Categories: 17
 
 **Product ID to Product Name inconsistency:**
 
-32 Product IDs were found to be associated with two different product names each. Their category and subcategory values remained consistent within each ID.
+32 Product IDs were associated with two different product names each.
 
-These are distinct product names, not merely formatting or whitespace variations.
+Further investigation showed that these were different product names rather than simple spelling variations. Their categories and subcategories remained consistent.
 
 **Product Name to Product ID inconsistency:**
 
-The reverse check also identified product names associated with multiple Product IDs.
+Several product names were associated with multiple Product IDs.
 
-Examples from the query results include:
+Examples include:
 
 | Product Name | Number of Product IDs |
 |---|---:|
@@ -293,81 +286,193 @@ Examples from the query results include:
 | Staple remover | 3 |
 | Staple holder | 3 |
 | Staple magnet | 2 |
+| Avery Non-Stick Binders | 2 |
+| Eldon Wave Desk Accessories | 2 |
 
-Other product names were also associated with multiple IDs.
+**Conclusion:** Neither Product ID nor Product Name can be treated as a unique, fully reliable product key without a deliberate mapping or standardization decision.
 
-This means that neither `Product_ID` nor `Product_Name` can currently be treated as a fully reliable unique product key without further investigation.
+The original product identifiers and names will be preserved in the raw table. Product-level analysis will account for this limitation.
 
-The raw source values will be preserved. A deliberate product-mapping decision will be made during the cleaning stage before product-level analysis.
+### K. Geographic Validation
 
-**Status:** Completed — inconsistencies identified; cleaning decision pending.
+Geographic consistency checks included:
 
-## Initial Audit Conclusions
+- State-to-Region mapping
+- City-and-State-to-Region mapping
+- Postal Code format validation
 
-The initial audit found that:
+No State-to-Region or City-and-State-to-Region inconsistencies were identified.
 
-1. The dataset contains 9,994 rows and 21 columns.
-2. No NULL or blank values were detected.
-3. `Row_ID` is unique.
-4. One potential exact duplicate business record was identified.
-5. All tested date and numeric values passed type-conversion checks.
-6. No invalid order/ship date sequence was detected.
-7. All tested categorical fields have consistent values and no leading/trailing whitespace.
-8. Customer ID and Customer Name mappings are consistent.
-9. Order attributes are consistent within each order.
-10. Product ID and Product Name mappings contain significant inconsistencies.
-11. Negative profit values exist and must be preserved for profitability analysis.
+Postal Code results:
 
-## Data Cleaning Plan
+| Metric | Result |
+|---|---:|
+| Total rows | 9,994 |
+| Unique Postal Codes | 631 |
+| Minimum length | 4 |
+| Maximum length | 5 |
+| Non-numeric values | 0 |
 
-The following changes are planned for a separate cleaned table. The raw table `dbo.superstore2` will remain unchanged.
+Some Postal Codes contain only four digits. These occur in northeastern US states where leading zeros are expected.
 
-| Area | Planned Action | Reason |
-|---|---|---|
-| Data types | Convert numeric text fields to INT and DECIMAL | Enable accurate calculations and aggregations |
-| Dates | Convert Order Date and Ship Date to DATE using the correct date format | Support time-based analysis |
-| Postal Code | Keep as text | Preserve formatting and possible leading zeros |
-| Customer fields | Preserve validated Customer ID and Customer Name mappings | No correction currently required |
-| Order fields | Preserve validated order attributes | No inconsistency detected |
-| Exact duplicate | Investigate the two identical business records before deciding whether to exclude one | Avoid accidental data loss |
-| Product mapping | Investigate conflicting Product ID and Product Name relationships | Prevent misleading product-level analysis |
-| Negative Profit | Preserve negative values | They represent business losses, not invalid data |
-| Discount | Preserve the original decimal rate | Values are already represented correctly |
+Examples:
 
-## Audit Progress
-
-| Audit Section | Status |
+| Original Value | Expected Format |
 |---|---|
-| A. Dataset Structure | Completed |
-| B. Missing Values | Completed |
-| C. Duplicates & Identifiers | Completed |
-| D. Data Types & Conversion | Completed |
-| E. Date Validation | Completed |
-| F. Numeric Validation | Completed |
-| G. Categorical Consistency | Completed |
-| H. Customer Validation | Completed |
-| I. Order Validation | Completed |
-| J. Product Validation | Completed |
-| K. Geographic Validation | Pending |
-| L. Business Logic | Pending |
-| M. Outlier Analysis | Pending |
-| N. Final Audit Summary | Pending |
+| 6010 | 06010 |
+| 1040 | 01040 |
+| 3060 | 03060 |
+| 7002 | 07002 |
+| 2886 | 02886 |
 
-**Project Status:** In Progress — Initial dataset inspection and audit sections A–J completed. Geographic validation, business logic checks, outlier analysis, final cleaning decisions, and the cleaned table are still pending.
+**Conclusion:** Postal Codes should be stored as text, and missing leading zeros should be restored during cleaning.
 
-## Next Steps
+### L. Business Logic Validation
 
-1. Complete Geographic Validation.
-2. Perform Business Logic checks.
-3. Investigate potential outliers.
-4. Prepare the final audit summary and cleaning decisions.
-5. Create a separate cleaned table with appropriate SQL data types.
-6. Begin customer-level analysis:
-   - Customer Segmentation
-   - New vs. Returning Customers
-   - Customer Value
-   - Customer Profitability
-   - Retention and Inactivity-Based Churn Risk
-   - RFM Analysis
-7. Build the Power BI dashboard.
-8. Document final business insights and recommendations.
+**Sales and Quantity**
+
+- No non-positive Sales values were found.
+- No non-positive Quantity values were found.
+- All tested Sales and Quantity values passed the conversion and validity checks.
+
+**Discount vs. Profit**
+
+The relationship between discount levels and loss records was investigated.
+
+| Discount | Total Rows | Loss Rows | Loss Rate |
+|---:|---:|---:|---:|
+| 0.00 | 4,798 | 0 | 0.00% |
+| 0.10 | 94 | 4 | 4.26% |
+| 0.15 | 52 | 17 | 32.69% |
+| 0.20 | 3,657 | 502 | 13.73% |
+| 0.30 | 227 | 208 | 91.63% |
+| 0.32 | 27 | 27 | 100.00% |
+| 0.40 | 206 | 180 | 87.38% |
+| 0.45 | 11 | 11 | 100.00% |
+| 0.50 | 66 | 66 | 100.00% |
+| 0.60 | 138 | 138 | 100.00% |
+| 0.70 | 418 | 418 | 100.00% |
+| 0.80 | 300 | 300 | 100.00% |
+
+**Key observation:** Higher discount levels are strongly associated with a higher proportion of loss-making product-line records in this dataset.
+
+For example:
+- At a 30% discount, 91.63% of records had negative Profit.
+- At a 40% discount, 87.38% had negative Profit.
+- At discount levels of 45% or higher, all observed records had negative Profit.
+
+This is an association, not proof of causation. Product mix, costs, and other business factors may also influence profitability.
+
+This finding will be investigated further during the business analysis.
+
+**Shipping Duration**
+
+| Metric | Result |
+|---|---:|
+| Minimum shipping duration | 0 days |
+| Maximum shipping duration | 7 days |
+| Average shipping duration | 3.96 days |
+
+No shipment was recorded before its corresponding order date.
+
+### M. Outlier Analysis
+
+The Interquartile Range (IQR) method was used to identify potential outliers in Sales, Profit, and Quantity.
+
+The standard boundaries were calculated as:
+
+- Lower Bound = Q1 − 1.5 × IQR
+- Upper Bound = Q3 + 1.5 × IQR
+
+**Outlier Summary**
+
+| Column | Q1 | Q3 | IQR | Lower Bound | Upper Bound | Outliers |
+|---|---:|---:|---:|---:|---:|---:|
+| Sales | 17.28 | 209.94 | 192.66 | -271.71 | 498.93 | 1,167 |
+| Profit | 1.72875 | 29.364 | 27.63525 | -39.724125 | 70.816875 | 1,881 |
+| Quantity | 2 | 5 | 3 | -2.5 | 9.5 | 170 |
+
+**Quantity Outlier Distribution**
+
+| Quantity | Rows |
+|---:|---:|
+| 10 | 57 |
+| 11 | 34 |
+| 12 | 23 |
+| 13 | 27 |
+| 14 | 29 |
+| **Total** | **170** |
+
+**Conclusion:** Outliers were identified in all three numeric fields. These values are not automatically considered errors. High sales, unusually high profits, significant losses, and larger order quantities can represent legitimate business activity.
+
+No outliers will be automatically deleted.
+
+### N. Final Audit Summary
+
+The dataset passed most structural, completeness, conversion, date, customer, order, and geographic checks.
+
+However, several issues require deliberate cleaning decisions before analysis:
+
+1. One potential exact duplicate business record.
+2. Product ID and Product Name inconsistencies.
+3. Four-digit Postal Codes that require leading-zero restoration.
+4. Numeric outliers that require preservation and contextual interpretation.
+
+**Overall conclusion:** The dataset is suitable for further analysis after applying documented cleaning rules and addressing the identified data-quality limitations.
+
+## 7. Data Cleaning Strategy
+
+The cleaning stage will be performed in a separate table, preserving the original raw data.
+
+Planned actions:
+
+- Convert dates into DATE data types.
+- Convert numeric columns into appropriate numeric types.
+- Preserve Postal Codes as text and restore leading zeros.
+- Investigate the potential exact duplicate record before deciding whether to exclude one copy.
+- Preserve original product identifiers and names; avoid arbitrary product consolidation.
+- Retain valid negative Profit values.
+- Retain valid numeric outliers.
+- Document all cleaning decisions.
+
+## 8. Project Progress
+
+| Stage | Status |
+|---|---|
+| Dataset selection | Completed |
+| SQL Server import | Completed |
+| Data structure audit | Completed |
+| Missing value audit | Completed |
+| Duplicate and identifier audit | Completed |
+| Data type validation | Completed |
+| Date validation | Completed |
+| Numeric validation | Completed |
+| Categorical validation | Completed |
+| Customer validation | Completed |
+| Order validation | Completed |
+| Product validation | Completed |
+| Geographic validation | Completed |
+| Business logic validation | Completed |
+| Outlier analysis | Completed |
+| Final audit summary | Completed |
+| Data cleaning | Pending |
+| Customer analysis | Pending |
+| RFM analysis | Pending |
+| Power BI dashboard | Pending |
+| Business findings and recommendations | Pending |
+
+## 9. Next Steps
+
+1. Create a separate cleaned SQL table.
+2. Apply the documented cleaning rules.
+3. Validate the cleaned dataset.
+4. Perform customer segmentation and customer value analysis.
+5. Analyze customer profitability and purchasing behavior.
+6. Investigate inactivity-based retention and churn risk.
+7. Conduct RFM analysis.
+8. Build an interactive Power BI dashboard.
+9. Document final business insights and recommendations.
+
+---
+
+*This project is part of a practical portfolio focused on SQL-based business analysis and data-driven decision-making.*
