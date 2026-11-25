@@ -519,7 +519,7 @@ customer_name,
 count(distinct Order_ID) as [Unique Orders]
 from superstore_clean
 group by customer_id,customer_name
-order by [Unique Orders] 
+order by [Unique Orders] desc
 ```
 
 Task 5 — Purchase Frequency
@@ -540,3 +540,73 @@ Customer_ID,
 Customer_Name
 order by Lines_Per_Order desc
 ```
+
+Task 6 — Average Order Value (AOV)
+
+Calculate each customer's Average Order Value using total Sales divided by the number of unique orders. Display Customer_ID, Customer_Name, Total_Sales, Order_Count, and AOV.
+
+```sql
+select  Customer_ID,Customer_Name,
+sum(sales) as [Total Sales],
+count(distinct order_id) as [Order_Count],
+sum(sales)/count(distinct order_id) as AOV
+from superstore_clean
+group by Customer_ID,Customer_Name
+order by AOV desc
+```
+
+Task 7 — Average Profit per Order
+
+Calculate the average Profit per unique order for each customer. Display Customer_ID, Customer_Name, Total_Profit, Order_Count, and Average_Profit_Per_Order.
+
+```sql
+select  Customer_ID,Customer_Name,
+sum(Profit) as [Profit],
+count(distinct order_id) as [Order_Count],
+sum(Profit)/count(distinct order_id) as Average_Profit_Per_Order
+from superstore_clean
+group by Customer_ID,Customer_Name
+order by Average_Profit_Per_Order desc
+```
+Task 8 — Customer Quantity
+
+Calculate the total quantity of products purchased by each customer. Display Customer_ID, Customer_Name, and Total_Quantity. Sort in descending order.
+
+```sql
+select  Customer_ID,Customer_Name,
+sum(quantity) as [Total Quantity]
+from superstore_clean
+group by Customer_ID,Customer_Name
+order by [Total Quantity] desc
+```
+Task 9 — Customer Discount
+
+Calculate the average discount rate received by each customer. Display Customer_ID, Customer_Name, and Average_Discount. Sort from highest to lowest.
+
+```sql
+select  Customer_ID,Customer_Name,
+avg(Discount) as Average_Discount
+from superstore_clean
+group by Customer_ID,Customer_Name
+order by Average_Discount desc
+```
+
+Task 10 — Customer Performance Summary
+
+Create a customer-level summary containing Total_Sales, Total_Profit, Order_Count, Total_Quantity, AOV, and Average_Profit_Per_Order. Sort customers by Total_Sales in descending order.
+
+```sql
+select  Customer_ID,Customer_Name,
+sum(sales) as [Total Sales],
+sum(profit) as [Total Profit],
+count(distinct order_id) as [Order Count],
+sum(quantity) as [Total Quantity],
+sum(sales)/count(distinct order_id) as AOV,
+sum(Profit)/count(distinct order_id) as Average_Profit_Per_Order
+from superstore_clean
+group by Customer_ID,Customer_Name
+order by [Total Sales] desc
+```
+
+
+
