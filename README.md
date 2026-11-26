@@ -608,5 +608,90 @@ group by Customer_ID,Customer_Name
 order by [Total Sales] desc
 ```
 
+Task 11 — First Purchase Date
+Find the first purchase date for each customer. Display Customer_ID, Customer_Name, and First_Purchase_Date. Sort by First_Purchase_Date ascending.
 
+```sql
+select customer_id,
+Customer_Name,
+min(order_date) as First_Purchase_Date 
+from superstore_clean
+group by customer_id,
+Customer_Name
+order by First_Purchase_Date  
+```
+Task 12 — Last Purchase Date
+Find the most recent purchase date for each customer. Display Customer_ID, Customer_Name, and Last_Purchase_Date. Sort by Last_Purchase_Date descending.
+
+```sql
+select customer_id,
+Customer_Name,
+max(order_date) as Last_Purchase_Date 
+from superstore_clean
+group by customer_id,
+Customer_Name
+order by Last_Purchase_Date desc  
+```
+Task 13 — Customer Purchase Lifespan
+Calculate the number of days between each customer's first and last purchase. Display Customer_ID, Customer_Name, First_Purchase_Date, Last_Purchase_Date, and Customer_Lifespan_Days. Sort by Customer_Lifespan_Days descending.
+
+```sql
+select customer_id,
+Customer_Name,
+min(order_date) as First_Purchase_Date,
+max(order_date) as Last_Purchase_Date ,
+datediff(day,min(order_date),max(order_date)) as Customer_Lifespan_Days
+from superstore_clean
+group by customer_id,
+Customer_Name
+order by Customer_Lifespan_Days desc 
+```
+
+Task 14 — Customer Order History
+Create an order-level summary for every customer. Display:
+•	Customer_ID
+•	Customer_Name
+•	Order_ID
+•	Order_Date
+•	Order_Line_Count
+•	Order_Sales
+•	Order_Profit
+•	Order_Quantity
+Each customer-order combination should appear only once. Sort by Customer_ID and Order_Date.
+
+```sql
+select customer_id,
+Customer_Name,
+order_id,
+order_date,
+count(order_id) as Order_Line_Count,
+sum(sales) as Order_Sales,
+sum(profit) as Order_Profit,
+sum(Quantity) as Order_Quantity	
+from superstore_clean
+group by customer_id,
+Customer_Name,
+order_id,
+Order_Date
+order by  Customer_ID,Order_Date
+```
+
+Task 15 — One-Time vs. Repeat Customers
+Classify each customer into one of two groups:
+•	One-Time Customer: placed exactly one unique order.
+•	Repeat Customer: placed more than one unique order.
+Display Customer_ID, Customer_Name, Order_Count, and Customer_Type.
+
+```sql
+select customer_id,
+Customer_Name,
+count( distinct Order_ID) as Order_Count,
+case 
+when(count(distinct Order_ID))=1 then 'One-Time Customer'
+else 'Repeat Customer'
+end as Customer_Type
+from superstore_clean
+group by customer_id,
+Customer_Name
+```
 
