@@ -695,3 +695,35 @@ group by customer_id,
 Customer_Name
 ```
 
+Task 16 — One-Time vs. Repeat Customer Distribution
+Calculate the number of One-Time Customers and Repeat Customers. Also calculate their percentage of total customers.
+Display Customer_Type, Customer_Count, and Customer_Percentage.
+
+```sql
+with customer_type_table as (
+select
+Customer_ID,
+case
+when count(distinct Order_ID) = 1 then 'One-Time Customer'
+else 'Repeat Customer'
+end as Customer_Type
+from superstore_clean
+group by Customer_ID
+)
+select 
+Customer_Type,
+count(*) as Customer_Count,
+cast(count(*) * 100.0 / sum(count(*)) OVER () as decimal(10, 2)) as Customer_Percentage
+from customer_type_table
+group by Customer_Type
+```
+
+Task 17 — New Customers by Year
+Calculate the number of new customers acquired in each year.
+A customer is considered new in the year of their first-ever purchase.
+Display First_Purchase_Year and New_Customer_Count.
+
+```sql
+
+```
+
