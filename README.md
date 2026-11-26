@@ -724,6 +724,49 @@ A customer is considered new in the year of their first-ever purchase.
 Display First_Purchase_Year and New_Customer_Count.
 
 ```sql
+with First_Purchase_Years as(
+select customer_id,
+min(year(order_date)) as First_Purchase_Year
+from superstore_clean
+group by customer_id
+)
+select First_Purchase_Year,
+count(customer_id) as New_Customer_Count
+from First_Purchase_Years
+group by First_Purchase_Year
+order by First_Purchase_Year
+```
 
+Task 18 — New vs. Returning Customers by Year
+For each calendar year, calculate:
+•	Total_Active_Customers
+•	New_Customers
+•	Returning_Customers
+A returning customer is someone who made a purchase during that year but whose first purchase occurred in an earlier year.
+
+```sql
+WITH FirstPurchaseYear AS (
+    SELECT 
+        Customer_ID,
+        YEAR(MIN(Order_Date)) AS First_Purchase_Year
+    FROM superstore_clean
+    GROUP BY Customer_ID
+),
+ActiveCustomersByYear AS (
+    SELECT DISTINCT
+        Customer_ID,
+        YEAR(Order_Date) AS Calendar_Year
+    FROM superstore_clean
+)
+SELECT 
+    a.Calendar_Year,
+    COUNT(a.Customer_ID) AS Total_Active_Customers,
+    COUNT(CASE WHEN f.First_Purchase_Year = a.Calendar_Year THEN a.Customer_ID END) AS New_Customers,
+    COUNT(CASE WHEN f.First_Purchase_Year < a.Calendar_Year THEN a.Customer_ID END) AS Returning_Customers
+FROM ActiveCustomersByYear a
+JOIN FirstPurchaseYear f
+    ON a.Customer_ID = f.Customer_ID
+GROUP BY a.Calendar_Year
+ORDER BY a.Calendar_Year;
 ```
 
