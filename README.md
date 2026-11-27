@@ -816,3 +816,99 @@ GROUP BY a.Display_Year
 ORDER BY a.Display_Year
 ```
 
+Task 20 — Customer Order Sequence
+Assign a sequence number to each order placed by every customer, based on Order_Date.
+Display Customer_ID, Customer_Name, Order_ID, Order_Date, and Order_Sequence.
+
+```sql
+WITH MusteriSifarisleri AS (
+SELECT 
+Customer_ID,
+Customer_Name,
+Order_ID,
+MIN(Order_Date) AS Order_Date
+FROM superstore_clean
+GROUP BY Customer_ID,customer_name,Order_ID
+)
+SELECT 
+Customer_ID,
+Customer_Name,
+Order_ID,
+Order_Date,
+ROW_NUMBER() OVER (
+PARTITION BY Customer_ID 
+ORDER BY Order_Date ASC, Order_ID ASC
+) AS Order_Sequence
+FROM MusteriSifarisleri
+```
+
+Task 21 — Days Between Consecutive Orders
+Calculate the number of days between consecutive orders for each customer.
+Display Customer_ID, Customer_Name, Order_ID, Order_Date, Previous_Order_Date, and Days_Between_Orders.
+
+```sql
+WITH MusteriSifarisleri AS (
+SELECT 
+Customer_ID,
+Customer_Name,
+Order_ID,
+MIN(Order_Date) AS Order_Date
+FROM superstore_clean
+GROUP BY Customer_ID,customer_name,Order_ID
+)
+SELECT 
+Customer_ID,
+Customer_Name,
+Order_ID,
+Order_Date,
+lag(order_date, 1) over (partition by customer_id order by order_date) as Previous_Order_Date,
+datediff(day,lag(order_date, 1) over (partition by customer_id order by order_date),order_date) as Days_Between_Orders 
+FROM MusteriSifarisleri
+```
+Task 22 — Average Days Between Orders
+Calculate the average number of days between consecutive orders for each customer.
+Display Customer_ID, Customer_Name, Order_Count, and Average_Days_Between_Orders.
+Customers with fewer than two orders should not be included because they have no interval between consecutive orders.
+
+```sql
+WITH SifarisSeviyyesi AS (
+    SELECT 
+        Customer_ID,
+        Customer_Name,
+        Order_ID,
+        MIN(Order_Date) AS Order_Date
+    FROM superstore_clean
+    GROUP BY Customer_ID, Customer_Name, Order_ID
+),
+ArdincilSifarisler AS (
+    SELECT 
+        Customer_ID,
+        Customer_Name,
+        Order_ID,
+        Order_Date,
+        COUNT(*) OVER (PARTITION BY Customer_ID) AS Order_Count,
+        LAG(Order_Date, 1) OVER (
+            PARTITION BY Customer_ID 
+            ORDER BY Order_Date ASC, Order_ID ASC
+        ) AS Previous_Order_Date
+    FROM SifarisSeviyyesi
+),
+GunFerqleri AS (
+    SELECT 
+        Customer_ID,
+        Customer_Name,
+        Order_Count,
+        DATEDIFF(day, Previous_Order_Date, Order_Date) AS Days_Between_Orders
+    FROM ArdincilSifarisler
+    WHERE Order_Count >= 2
+      AND Previous_Order_Date IS NOT NULL
+)
+SELECT 
+    Customer_ID,
+    Customer_Name,
+    Order_Count,
+    CAST(AVG(CAST(Days_Between_Orders AS FLOAT)) AS DECIMAL(10, 2)) AS Average_Days_Between_Orders
+FROM GunFerqleri
+GROUP BY Customer_ID, Customer_Name, Order_Count
+ORDER BY Customer_ID;
+```
