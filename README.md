@@ -746,27 +746,35 @@ A returning customer is someone who made a purchase during that year but whose f
 
 ```sql
 WITH FirstPurchaseYear AS (
-    SELECT 
-        Customer_ID,
-        YEAR(MIN(Order_Date)) AS First_Purchase_Year
-    FROM superstore_clean
-    GROUP BY Customer_ID
+SELECT 
+Customer_ID,
+YEAR(MIN(Order_Date)) AS First_Purchase_Year
+FROM superstore_clean
+GROUP BY Customer_ID
 ),
 ActiveCustomersByYear AS (
-    SELECT DISTINCT
-        Customer_ID,
-        YEAR(Order_Date) AS Calendar_Year
-    FROM superstore_clean
+SELECT DISTINCT
+Customer_ID,
+YEAR(Order_Date) AS Calendar_Year
+FROM superstore_clean
 )
 SELECT 
-    a.Calendar_Year,
-    COUNT(a.Customer_ID) AS Total_Active_Customers,
-    COUNT(CASE WHEN f.First_Purchase_Year = a.Calendar_Year THEN a.Customer_ID END) AS New_Customers,
-    COUNT(CASE WHEN f.First_Purchase_Year < a.Calendar_Year THEN a.Customer_ID END) AS Returning_Customers
+a.Calendar_Year,
+COUNT(a.Customer_ID) AS Total_Active_Customers,
+COUNT(CASE WHEN f.First_Purchase_Year = a.Calendar_Year THEN a.Customer_ID END) AS New_Customers,
+COUNT(CASE WHEN f.First_Purchase_Year < a.Calendar_Year THEN a.Customer_ID END) AS Returning_Customers
 FROM ActiveCustomersByYear a
 JOIN FirstPurchaseYear f
-    ON a.Customer_ID = f.Customer_ID
+ON a.Customer_ID = f.Customer_ID
 GROUP BY a.Calendar_Year
 ORDER BY a.Calendar_Year;
+```
+
+Task 19 — Yearly Returning Customer Rate
+Calculate the Returning Customer Rate for each year.
+Display Year, Total_Active_Customers, Returning_Customers, and Returning_Customer_Rate.
+
+```sql
+
 ```
 
