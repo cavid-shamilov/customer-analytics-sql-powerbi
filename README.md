@@ -649,14 +649,23 @@ order by Customer_Lifespan_Days desc
 
 Task 14 — Customer Order History
 Create an order-level summary for every customer. Display:
+
 •	Customer_ID
+
 •	Customer_Name
+
 •	Order_ID
+
 •	Order_Date
+
 •	Order_Line_Count
+
 •	Order_Sales
+
 •	Order_Profit
+
 •	Order_Quantity
+
 Each customer-order combination should appear only once. Sort by Customer_ID and Order_Date.
 
 ```sql
@@ -678,8 +687,11 @@ order by  Customer_ID,Order_Date
 
 Task 15 — One-Time vs. Repeat Customers
 Classify each customer into one of two groups:
+
 •	One-Time Customer: placed exactly one unique order.
+
 •	Repeat Customer: placed more than one unique order.
+
 Display Customer_ID, Customer_Name, Order_Count, and Customer_Type.
 
 ```sql
@@ -739,9 +751,13 @@ order by First_Purchase_Year
 
 Task 18 — New vs. Returning Customers by Year
 For each calendar year, calculate:
+
 •	Total_Active_Customers
+
 •	New_Customers
+
 •	Returning_Customers
+
 A returning customer is someone who made a purchase during that year but whose first purchase occurred in an earlier year.
 
 ```sql
@@ -775,6 +791,28 @@ Calculate the Returning Customer Rate for each year.
 Display Year, Total_Active_Customers, Returning_Customers, and Returning_Customer_Rate.
 
 ```sql
-
+WITH FirstPurchaseYear AS (
+SELECT 
+Customer_ID,
+YEAR(MIN(Order_Date)) AS First_Purchase_Year
+FROM superstore_clean
+GROUP BY Customer_ID
+),
+ActiveCustomersByYear AS (
+SELECT DISTINCT
+Customer_ID,
+YEAR(Order_Date) AS Display_Year
+FROM superstore_clean
+)
+SELECT 
+a.Display_Year,
+COUNT(a.Customer_ID) AS Total_Active_Customers,
+COUNT(CASE WHEN f.First_Purchase_Year < a.Display_Year THEN a.Customer_ID END) AS Returning_Customers,
+cast(COUNT(CASE WHEN f.First_Purchase_Year < a.Display_Year THEN a.Customer_ID END)*100.0/nullif(COUNT(a.Customer_ID), 0) as decimal(10,2)) as Returning_Customer_Rate
+FROM ActiveCustomersByYear a
+JOIN FirstPurchaseYear f
+ON a.Customer_ID = f.Customer_ID
+GROUP BY a.Display_Year
+ORDER BY a.Display_Year
 ```
 
