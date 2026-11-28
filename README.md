@@ -967,3 +967,105 @@ Customer_Count,
 cast(customer_count *100.0/sum(customer_count) over () AS decimal(10,2)) as Customer_Percentage
 from Customer_Count_Table	
 ```
+
+Task 26 — Customer Profit Margin  <br>
+Calculate the profit margin for every customer <br>
+Display Customer_ID, Customer_Name, Total_Sales, Total_Profit, and Profit_Margin. <br>
+Sort by Profit_Margin descending.
+
+```sql
+select
+Segment,
+customer_id,
+customer_name,
+sum(sales) as Total_Sales,
+sum(profit) as Total_Profit,
+cast(sum(profit) * 100.0/sum(sales) as decimal(10,2)) as Profit_Margin
+from superstore_clean
+group by Segment,
+customer_id,
+customer_name
+order by profit_margin desc
+```
+
+Task 27 — Unprofitable Customers <br>
+Identify customers whose total Profit is negative. <br>
+Display Customer_ID, Customer_Name, Total_Sales, Total_Profit, Order_Count, and Profit_Margin. <br>
+Sort by Total_Profit ascending. <br>
+
+```sql
+select
+Segment,
+customer_id,
+customer_name,
+sum(sales) as Total_Sales,
+sum(profit) as Total_Profit,
+count(distinct order_id) as Order_Count,
+cast(sum(profit) * 100.0/sum(sales) as decimal(10,2)) as Profit_Margin
+from superstore_clean
+group by Segment,
+customer_id,
+customer_name
+order by Total_Profit  asc
+```
+
+Task 28 — High-Sales but Unprofitable Customers <br>
+Identify customers who meet both conditions: <br>
+•	Their Total_Sales is higher than the average Total_Sales across all customers. <br>
+•	Their Total_Profit is negative. <br>
+Display Customer_ID, Customer_Name, Total_Sales, Total_Profit, and Profit_Margin. <br>
+
+```sql
+with Total_sales_table as(
+select
+Segment,
+customer_id,
+customer_name,
+sum(sales) as Total_Sales,
+sum(profit) as Total_Profit,
+cast(sum(profit) * 100.0/sum(sales) as decimal(10,2)) as Profit_Margin
+from superstore_clean
+group by Segment,
+customer_id,
+customer_name
+),
+Average_Total_Sales_Table as(
+select 
+Segment,
+customer_id,
+customer_name,
+Total_Sales,
+Total_Profit,
+Profit_Margin,
+avg(total_sales) over () as Average_Total_Sales
+from Total_sales_table
+where Total_Profit like '-%'
+)
+
+select 
+Segment,
+customer_id,
+customer_name,
+Total_Sales,
+Total_Profit,
+Profit_Margin,
+Average_Total_Sales
+from Average_Total_Sales_Table
+where Total_Sales > Average_Total_Sales
+order by Profit_Margin asc
+```
+
+Task 29 — Customer Sales Contribution <br>
+Calculate each customer's percentage contribution to total company Sales. <br>
+Display Customer_ID, Customer_Name, Total_Sales, and Sales_Contribution_Percentage. <br>
+Sort by Sales_Contribution_Percentage descending. <br>
+
+```sql
+
+```
+
+
+
+
+
+
