@@ -685,14 +685,11 @@ Order_Date
 order by  Customer_ID,Order_Date
 ```
 
-Task 15 — One-Time vs. Repeat Customers
-Classify each customer into one of two groups:
-
-•	One-Time Customer: placed exactly one unique order.
-
-•	Repeat Customer: placed more than one unique order.
-
-Display Customer_ID, Customer_Name, Order_Count, and Customer_Type.
+Task 15 — One-Time vs. Repeat Customers  <br>
+Classify each customer into one of two groups:  <br>
+•	One-Time Customer: placed exactly one unique order.  <br>
+•	Repeat Customer: placed more than one unique order.  <br>
+Display Customer_ID, Customer_Name, Order_Count, and Customer_Type.  <br>
 
 ```sql
 select customer_id,
@@ -707,9 +704,9 @@ group by customer_id,
 Customer_Name
 ```
 
-Task 16 — One-Time vs. Repeat Customer Distribution
-Calculate the number of One-Time Customers and Repeat Customers. Also calculate their percentage of total customers.
-Display Customer_Type, Customer_Count, and Customer_Percentage.
+Task 16 — One-Time vs. Repeat Customer Distribution  <br>
+Calculate the number of One-Time Customers and Repeat Customers. Also calculate their percentage of total customers.  <br>
+Display Customer_Type, Customer_Count, and Customer_Percentage.  <br>
 
 ```sql
 with customer_type_table as (
@@ -730,10 +727,10 @@ from customer_type_table
 group by Customer_Type
 ```
 
-Task 17 — New Customers by Year
-Calculate the number of new customers acquired in each year.
-A customer is considered new in the year of their first-ever purchase.
-Display First_Purchase_Year and New_Customer_Count.
+Task 17 — New Customers by Year  <br>
+Calculate the number of new customers acquired in each year.  <br>
+A customer is considered new in the year of their first-ever purchase.  <br>
+Display First_Purchase_Year and New_Customer_Count.  <br>
 
 ```sql
 with First_Purchase_Years as(
@@ -749,14 +746,11 @@ group by First_Purchase_Year
 order by First_Purchase_Year
 ```
 
-Task 18 — New vs. Returning Customers by Year
-For each calendar year, calculate:
-
-•	Total_Active_Customers
-
-•	New_Customers
-
-•	Returning_Customers
+Task 18 — New vs. Returning Customers by Year  <br>
+For each calendar year, calculate:  <br>
+•	Total_Active_Customers  <br>
+•	New_Customers  <br>
+•	Returning_Customers <br>
 
 A returning customer is someone who made a purchase during that year but whose first purchase occurred in an earlier year.
 
@@ -786,9 +780,9 @@ GROUP BY a.Calendar_Year
 ORDER BY a.Calendar_Year;
 ```
 
-Task 19 — Yearly Returning Customer Rate
-Calculate the Returning Customer Rate for each year.
-Display Year, Total_Active_Customers, Returning_Customers, and Returning_Customer_Rate.
+Task 19 — Yearly Returning Customer Rate  <br>
+Calculate the Returning Customer Rate for each year.  <br>
+Display Year, Total_Active_Customers, Returning_Customers, and Returning_Customer_Rate.  <br>
 
 ```sql
 WITH FirstPurchaseYear AS (
@@ -816,9 +810,9 @@ GROUP BY a.Display_Year
 ORDER BY a.Display_Year
 ```
 
-Task 20 — Customer Order Sequence
-Assign a sequence number to each order placed by every customer, based on Order_Date.
-Display Customer_ID, Customer_Name, Order_ID, Order_Date, and Order_Sequence.
+Task 20 — Customer Order Sequence  <br>
+Assign a sequence number to each order placed by every customer, based on Order_Date.   <br>
+Display Customer_ID, Customer_Name, Order_ID, Order_Date, and Order_Sequence.  <br>
 
 ```sql
 WITH CustomerOrders AS (
@@ -842,9 +836,9 @@ ORDER BY Order_Date ASC, Order_ID ASC
 FROM CustomerOrders
 ```
 
-Task 21 — Days Between Consecutive Orders
-Calculate the number of days between consecutive orders for each customer.
-Display Customer_ID, Customer_Name, Order_ID, Order_Date, Previous_Order_Date, and Days_Between_Orders.
+Task 21 — Days Between Consecutive Orders  <br>
+Calculate the number of days between consecutive orders for each customer.  <br>
+Display Customer_ID, Customer_Name, Order_ID, Order_Date, Previous_Order_Date, and Days_Between_Orders.  <br>
 
 ```sql
 WITH CustomerOrders AS (
@@ -865,9 +859,9 @@ lag(order_date, 1) over (partition by customer_id order by order_date) as Previo
 datediff(day,lag(order_date, 1) over (partition by customer_id order by order_date),order_date) as Days_Between_Orders 
 FROM CustomerOrders
 ```
-Task 22 — Average Days Between Orders
-Calculate the average number of days between consecutive orders for each customer.
-Display Customer_ID, Customer_Name, Order_Count, and Average_Days_Between_Orders.
+Task 22 — Average Days Between Orders  <br>
+Calculate the average number of days between consecutive orders for each customer.  <br>
+Display Customer_ID, Customer_Name, Order_Count, and Average_Days_Between_Orders.  <br>
 Customers with fewer than two orders should not be included because they have no interval between consecutive orders.
 
 ```sql
@@ -894,31 +888,32 @@ SequencedOrders AS (
     FROM CustomerOrders
 ),
 OrderIntervals AS (
-    SELECT 
-        Customer_ID,
-        Customer_Name,
-        Order_Count,
-        DATEDIFF(day, Previous_Order_Date, Order_Date) AS Days_Between_Orders
-    FROM SequencedOrders
-    WHERE Order_Count >= 2
-      AND Previous_Order_Date IS NOT NULL
+SELECT 
+Customer_ID,
+Customer_Name,
+Order_Count,
+DATEDIFF(day, Previous_Order_Date, Order_Date) AS Days_Between_Orders
+FROM SequencedOrders
+WHERE Order_Count >= 2
+AND Previous_Order_Date IS NOT NULL
 )
 SELECT 
-    Customer_ID,
-    Customer_Name,
-    Order_Count,
-    CAST(AVG(CAST(Days_Between_Orders AS FLOAT)) AS DECIMAL(10, 2)) AS Average_Days_Between_Orders
+Customer_ID,
+Customer_Name,
+Order_Count,
+CAST(AVG(CAST(Days_Between_Orders AS FLOAT)) AS DECIMAL(10, 2)) AS Average_Days_Between_Orders
 FROM OrderIntervals
 GROUP BY Customer_ID, Customer_Name, Order_Count
-ORDER BY Customer_ID;
+ORDER BY Customer_ID
 ```
 
-Task 23 — Customer Recency
-Calculate how many days have passed since each customer's last purchase.
-Use the maximum Order_Date in the cleaned dataset as the reference date, rather than today's date.
-Display Customer_ID, Customer_Name, Last_Purchase_Date, Reference_Date, and Recency_Days.
+Task 23 — Customer Recency  <br>
+Calculate how many days have passed since each customer's last purchase.  <br>
+Use the maximum Order_Date in the cleaned dataset as the reference date, rather than today's date.  <br>
+Display Customer_ID, Customer_Name, Last_Purchase_Date, Reference_Date, and Recency_Days.  <br>
 
 ```sql
+select
 Customer_ID,
 Customer_Name,
 MAX(Order_Date) AS Last_Purchase_Date,
@@ -927,4 +922,29 @@ datediff(day,MAX(Order_Date),MAX(MAX(Order_Date)) OVER ()) as Recency_Days
 FROM superstore_clean
 GROUP BY Customer_ID, Customer_Name
 ORDER BY Last_Purchase_Date DESC
+```
+Task 24 — Customer Performance by Segment <br>  
+Analyze customer performance across Consumer, Corporate, and Home Office segments.  <br>
+Display:  <br>
+•	Segment <br>
+•	Unique_Customers  <br>
+•	Total_Orders  <br>
+•	Total_Sales  <br>
+•	Total_Profit  <br>
+•	Average_Order_Value  <br>
+•	Average_Profit_Per_Order  <br>
+Sort by Total_Sales descending.
+
+```sql
+select
+Segment,
+count(distinct customer_id) as Unique_Customers,
+count(distinct order_id) as Total_Orders,
+sum(sales) as Total_Sales,
+sum(profit) as Total_Profit,
+cast(sum(sales) as decimal(10,2))/count(distinct order_id) as Average_Order_Value,
+cast(sum(Profit) as decimal(10,2))/count(distinct order_id) as Average_Profit_Per_Order
+from superstore_clean
+group by Segment
+order by Total_Sales desc
 ```
