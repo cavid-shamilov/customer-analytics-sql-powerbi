@@ -948,3 +948,22 @@ from superstore_clean
 group by Segment
 order by Total_Sales desc
 ```
+
+Task 25 — Customer Distribution by Segment  <br>
+Calculate the number and percentage of customers in each Segment.  <br>
+Display Segment, Customer_Count, and Customer_Percentage.  <br>
+Make sure each customer is counted only once.  <br>
+
+```sql
+with Customer_Count_Table as (
+select
+Segment,
+count(distinct customer_id) as Customer_Count
+from superstore_clean
+group by Segment
+)
+select Segment,
+Customer_Count,
+cast(customer_count *100.0/sum(customer_count) over () AS decimal(10,2)) as Customer_Percentage
+from Customer_Count_Table	
+```
